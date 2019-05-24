@@ -1,3 +1,5 @@
+*.si4project
+netlink/log_to_server
 # Compiled Object files
 *.slo
 *.lo
