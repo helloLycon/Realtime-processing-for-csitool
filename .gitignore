@@ -1,5 +1,6 @@
 *.si4project
 netlink/log_to_server
+*.mexw64
 # Compiled Object files
 *.slo
 *.lo
