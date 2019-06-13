@@ -6,7 +6,7 @@ This realtime processing tool is for Atheros-CSI-tool.
 read_bf_socket
 ```
 
-##In Atheros Device:
+## In Atheros Device:
 
 refer to https://github.com/helloLycon/Atheros_CSI_tool_OpenWRT_UserSpaceApp_src for more details.
 ```
