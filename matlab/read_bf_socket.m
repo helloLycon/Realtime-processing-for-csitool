@@ -14,7 +14,7 @@ while 1
     port = 8090;
     t = tcpip('0.0.0.0', port, 'NetworkRole', 'server');
     t.InputBufferSize = 1024*4;
-    t.Timeout = 15;
+    t.Timeout = inf;
     fprintf('Waiting for connection on port %d\n',port);
     fopen(t);
     fprintf('Accept connection from %s\n',t.RemoteHost);
@@ -47,6 +47,11 @@ while 1
         msg = handle_csi_data(t);
         msg_save{cnter, 1} = msg;
         cnter = cnter + 1;
+
+        % no csi message.
+        if(0 == msg.csi_len)
+            continue;
+        end
 
         %This plot will show graphics about recent 1 csi packets
         for nRx = 1:msg.nr
