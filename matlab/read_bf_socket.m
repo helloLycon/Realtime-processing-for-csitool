@@ -13,7 +13,7 @@ while 1
 %% Build a TCP Server and wait for connection
     port = 8090;
     t = tcpip('0.0.0.0', port, 'NetworkRole', 'server');
-    t.InputBufferSize = 1024;
+    t.InputBufferSize = 1024*4;
     t.Timeout = 15;
     fprintf('Waiting for connection on port %d\n',port);
     fopen(t);
@@ -38,75 +38,25 @@ while 1
     ylabel('SNR (dB)');
 
 %% Initialize variables
-    csi_entry = [];
-    index = -1;                     % The index of the plots which need shadowing
-    broken_perm = 0;                % Flag marking whether we've encountered a broken CSI yet
-    triangle = [1 3 6];             % What perm should sum to for 1,2,3 antennas
+    cnter = 1;
 
 %% Process all entries in socket
     % Need 3 bytes -- 2 byte size field and 1 byte code
     while 1
-        % Read size and code from the received packets
-        s = warning('error', 'instrument:fread:unsuccessfulRead');
-        try
-            field_len = fread(t, 1, 'uint16');
-        catch
-            warning(s);
-            disp('Timeout, please restart the client and connect again.');
-            break;
-        end
+        %https://github.com/helloLycon/Realtime-processing-for-csitool
+        msg = handle_csi_data(t);
+        msg_save{cnter, 1} = msg;
+        cnter = cnter + 1;
 
-        code = fread(t,1);    
-        % If unhandled code, skip (seek over) the record and continue
-        if (code == 187) % get beamforming or phy data
-            bytes = fread(t, field_len-1, 'uint8');
-            bytes = uint8(bytes);
-            if (length(bytes) ~= field_len-1)
-                fclose(t);
-                return;
-            end
-        else if field_len <= t.InputBufferSize  % skip all other info
-            fread(t, field_len-1, 'uint8');
-            continue;
-            else
-                continue;
+        %This plot will show graphics about recent 1 csi packets
+        for nRx = 1:msg.nr
+            for nTx = 1:msg.nc
+                set(p((nRx-1)*msg.nc+nTx),'XData', [1:msg.num_tones], 'YData', db(abs(msg.csi(nRx,nTx,:))), 'color', 'b', 'linestyle', '-');
             end
         end
-
-        if (code == 187) % (tips: 187 = hex2dec('bb')) Beamforming matrix -- output a record
-            csi_entry = read_bfee(bytes);
-        
-            perm = csi_entry.perm;
-            Nrx = csi_entry.Nrx;
-            if Nrx > 1 % No permuting needed for only 1 antenna
-                if sum(perm) ~= triangle(Nrx) % matrix does not contain default values
-                    if broken_perm == 0
-                        broken_perm = 1;
-                        fprintf('WARN ONCE: Found CSI (%s) with Nrx=%d and invalid perm=[%s]\n', filename, Nrx, int2str(perm));
-                    end
-                else
-                    csi_entry.csi(:,perm(1:Nrx),:) = csi_entry.csi(:,1:Nrx,:);
-                end
-            end
-        end
-    
-        index = mod(index+1, 10);
-        
-        csi = get_scaled_csi(csi_entry);%CSI data
-	%You can use the CSI data here.
-
-	%This plot will show graphics about recent 10 csi packets
-        set(p(index*3 + 1),'XData', [1:30], 'YData', db(abs(squeeze(csi(1,1,:)).')), 'color', 'b', 'linestyle', '-');
-        if Nrx > 1
-            set(p(index*3 + 2),'XData', [1:30], 'YData', db(abs(squeeze(csi(1,2,:)).')), 'color', 'g', 'linestyle', '-');
-        end
-        if Nrx > 2
-            set(p(index*3 + 3),'XData', [1:30], 'YData', db(abs(squeeze(csi(1,3,:)).')), 'color', 'r', 'linestyle', '-');
-        end
-        axis([1,30,-10,40]);
+        axis([1,msg.num_tones , -10 ,80]);
         drawnow;
  
-        csi_entry = [];
     end
 %% Close file
     fclose(t);
