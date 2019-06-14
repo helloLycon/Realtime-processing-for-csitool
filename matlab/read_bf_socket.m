@@ -22,6 +22,7 @@ while 1
 %% Initialize variables
     cnter = 1;
     VER = '';
+    colorArr = [ "b", "c","g","k", "m","r","y"];
 
 %% Process all entries in socket
     % Need 3 bytes -- 2 byte size field and 1 byte code
@@ -67,8 +68,11 @@ while 1
         %This plot will show graphics about recent 1 csi packets
         for nRx = 1:msg.nr
             for nTx = 1:msg.nc
-                set(lineAmp((nRx-1)*msg.nc+nTx),'XData', [1:msg.num_tones], 'YData', db(abs(msg.csi(nRx,nTx,:))), 'color', 'b', 'linestyle', '-','linewidth', 2);
-                set(linePhase((nRx-1)*msg.nc+nTx),'XData', [1:msg.num_tones], 'YData', angle(msg.csi(nRx,nTx,:)), 'color', 'r', 'linestyle', '-','linewidth', 2);
+                sizeArrStruct = size(colorArr);
+                sizeArr = sizeArrStruct(2);
+                index = (nRx-1)*msg.nc + nTx;
+                set(lineAmp(index),'XData', [1:msg.num_tones], 'YData', db(abs(msg.csi(nRx,nTx,:))), 'color', colorArr(mod(index,sizeArr)+1), 'linestyle', '-','linewidth', 2);
+                set(linePhase(index),'XData', [1:msg.num_tones], 'YData', angle(msg.csi(nRx,nTx,:)), 'color', colorArr(mod(index,sizeArr)+1), 'linestyle', '-','linewidth', 2);
             end
         end
         drawnow;
