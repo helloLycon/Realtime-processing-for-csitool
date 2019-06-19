@@ -56,9 +56,9 @@ while 1
                 spPhase = subplot(2,1,2);
                 linePhase = plot(0, zeros(30,1), 'MarkerSize',5);
                 xlabel('Subcarrier index');
-                ylabel('Phase');
+                ylabel('Phase(deg)');
                 %axis([0  msg.num_tones  -100 10]);
-                ylim(spPhase, [-6 6]);
+                ylim(spPhase, [-250 250]);
                 xlim(spPhase, [1 msg.num_tones]);
             else
                 lineAmp = plot(t1,m1,'EraseMode','Xor','MarkerSize',5);
@@ -72,7 +72,7 @@ while 1
                 sizeArr = sizeArrStruct(2);
                 index = (nRx-1)*msg.nc + nTx;
                 set(lineAmp(index),'XData', [1:msg.num_tones], 'YData', db(abs(msg.csi(nRx,nTx,:))), 'color', colorArr(mod(index,sizeArr)+1), 'linestyle', '-','linewidth', 2);
-                set(linePhase(index),'XData', [1:msg.num_tones], 'YData', unwrap(angle(msg.csi(nRx,nTx,:))), 'color', colorArr(mod(index,sizeArr)+1), 'linestyle', '-','linewidth', 2);
+                set(linePhase(index),'XData', [1:msg.num_tones], 'YData', unwrap(180*angle(msg.csi(nRx,nTx,:))/pi), 'color', colorArr(mod(index,sizeArr)+1), 'linestyle', '-','linewidth', 2);
             end
         end
         drawnow;
